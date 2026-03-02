@@ -1,15 +1,20 @@
-# ROS 2 build folders
+# Python仮想環境 (libtorchなどが含まれており非常に重い)
+.venv/
+__pycache__/
+*.pyc
+
+# ROS2 関連
 build/
 install/
 log/
 
-# Dataset
-my_slam_dataset/
+# 大容量データセット (100MB超えのファイルはGitHubでエラーになります)
 *.mcap
+*.bag
+*.db3
+*.zip
+*.tar.gz
 
-# Python
-__pycache__/
-*.pyc
-
-# OS files
-.DS_Store
+# VS Codeの設定
+.vscode/
+.cache/
