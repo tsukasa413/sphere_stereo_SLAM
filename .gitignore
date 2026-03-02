@@ -1,0 +1,15 @@
+# ROS 2 build folders
+build/
+install/
+log/
+
+# Dataset
+my_slam_dataset/
+*.mcap
+
+# Python
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store

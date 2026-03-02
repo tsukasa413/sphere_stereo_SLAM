@@ -1,0 +1,73 @@
+/**:
+    ros__parameters:
+        common:
+            lid_topic:  "/omnidirectional/point_cloud"
+            imu_topic:  "/camera/imu"
+            time_sync_en: false         # External time sync is managed by RealSense driver
+            time_offset_lidar_to_imu: 0.0 # Will be calibrated if needed
+                                        # This param will take effect no matter what time_sync_en is. 
+                                        # So if the time offset is not known exactly, please set as 0.0
+
+        preprocess:
+            lidar_type: 2                # 0:Livox, 1:Velodyne, 2:PointCloud2(standard format)
+            scan_line:  32               # Not used for PointCloud2, but required parameter
+            blind: 0.3                   # Minimum range (meters) - close range filtering
+            timestamp_unit: 0            # 0: second, 1: millisecond, 2: microsecond, 3: nanosecond
+            scan_rate: 5                 # 5Hz point cloud update rate
+
+        mapping:
+            # IMU noise parameters (increased for 5Hz robustness)
+            acc_cov: 0.15                # Accelerometer noise (increased from 0.1 for 5Hz)
+            gyr_cov: 0.15                # Gyroscope noise (increased from 0.1 for 5Hz)
+            b_acc_cov: 0.0001            # Accelerometer bias variance
+            b_gyr_cov: 0.0001            # Gyroscope bias variance
+            
+            # Field of view and range
+            fov_degree:    360.0         # Full omnidirectional view
+            det_range:     30.0          # Maximum detection range (meters)
+            
+            # Extrinsic calibration (IMU to LiDAR/Camera transform)
+            extrinsic_est_en:  true      # Enable online extrinsic calibration
+            extrinsic_T: [ 0.0, 0.0, 0.0 ]  # Translation [x, y, z] in meters
+                                            # TODO: Update based on actual camera-IMU offset
+            extrinsic_R: [1, 0, 0,          # Rotation matrix (Row-major: R11,R12,R13,R21,R22,R23,R31,R32,R33)
+                          0, 1, 0,          # Identity matrix (no rotation)
+                          0, 0, 1]          # TODO: Update based on actual camera-IMU orientation
+            
+            # Point cloud filtering for 5Hz optimization
+            filter_size_surf: 0.1        # Voxel size for surface points (small to preserve density)
+            filter_size_map: 0.3         # Voxel size for map points
+            cube_side_length: 1000.0     # Map cube size (large for drift prevention)
+            
+            # IVox (incremental voxel map) parameters
+            ivox_grid_size: 0.5          # Grid resolution (larger for 5Hz tolerance)
+            ivox_nearby_type: 18         # Neighbor search type (26 for full, 18 for edge-sharing)
+            
+            # Optimization parameters
+            max_iteration: 4             # IEKF iterations (reduced for real-time at 5Hz)
+            esti_plane_threshold: 0.15   # Planarity threshold for point-to-plane
+            
+        publish:
+            path_en: true                # Publish trajectory path
+            scan_publish_en:  true       # Publish point cloud scans
+            dense_publish_en: false      # Disable dense map publishing (too heavy for Jetson)
+            scan_bodyframe_pub_en: false # Publish in world frame (not body frame)
+            scan_effect_pub_en: true     # Publish effective (matched) points
+            
+        # File paths (absolute paths for Docker compatibility)
+        map_file_path: "/home/motoken/college/ros2_ws/output/fast_lio_map.pcd" 
+        
+        pcd_save:
+            pcd_save_en: true            # Enable map saving
+            interval: -1                 # Save all frames in one PCD file
+                                        # Use positive value (e.g., 100) to save incrementally
+        
+        traj_save:
+            traj_save_en: true           # Enable trajectory saving
+            traj_file_path: "/home/motoken/college/ros2_ws/output/fast_lio_trajectory.txt"
+
+        # Runtime parameters for Jetson Orin optimization
+        runtime:
+            max_num_iteration: 4         # Balance between accuracy and speed
+            min_eigen_value: 0.001       # Minimum eigenvalue for plane fitting
+            point_filter_num: 1          # Downsample factor (1=no downsampling for 5Hz)
